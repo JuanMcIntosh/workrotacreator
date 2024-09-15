@@ -1,0 +1,150 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+  color: #333;
+  margin: 0;
+  padding: 20px;
+  width: 400px;
+}
+
+.container {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2 {
+  color: #1a1a1a;
+  margin-top: 0;
+}
+
+input, button, select {
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+button {
+  background-color: #333;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #555;
+}
+
+#employeeList, #rotaOutput {
+  margin-top: 20px;
+  border-top: 1px solid #ddd;
+  padding-top: 20px;
+}
+
+#employeeList div, #rotaOutput div {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 4px;
+}
+
+#unavailableDates {
+  margin-top: 20px;
+}
+
+#unavailableDates > div {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+#unavailableDates label {
+  margin-right: 15px;
+  display: flex;
+  align-items: center;
+}
+
+#unavailableDates input[type="radio"] {
+  margin-right: 5px;
+  width: auto;
+}
+
+#datesInput, #recurringInput {
+  margin-top: 10px;
+}
+
+#recurringDays {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+#recurringDays label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+#recurringDays input[type="checkbox"] {
+  margin-right: 5px;
+  width: auto;
+}
+
+.remove-date {
+  cursor: pointer;
+  color: #cc0000;
+  margin-left: 5px;
+}
+
+#unavailableDates div {
+  margin-top: 10px;
+}
+
+#unavailableDates label {
+  margin-right: 10px;
+}
+
+#rangeDateInput input, #recurringInput select {
+  width: calc(50% - 5px);
+  display: inline-block;
+}
+
+#rangeDateInput input:first-child {
+  margin-right: 10px;
+}
+
+/* Add these new styles */
+.section-separator {
+  border-top: 1px solid #ddd;
+  margin: 20px 0;
+}
+
+/* Update this existing style */
+#unavailableDates, #dateSelection {
+  margin-top: 20px;
+  padding-top: 20px;
+}
+
+/* Add this to your existing CSS */
+#recurringDays {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+#recurringDays label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+#recurringDays input[type="checkbox"] {
+  margin-right: 5px;
+  width: auto;
+}

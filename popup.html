@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Rota Creator</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Work Rota Creator</h1>
+        <div id="employeeInput">
+            <h2>Add Employees</h2>
+            <input type="text" id="employeeName" placeholder="Employee Name">
+            <button id="addEmployee">Add Employee</button>
+        </div>
+        <div id="employeeList"></div>
+
+        <div class="section-separator"></div>
+
+        <div id="unavailableDates">
+            <h2>Mark Unavailable Dates</h2>
+            <select id="employeeSelect"></select>
+            <div>
+                <label>
+                    <input type="radio" name="unavailableType" value="dates" checked>
+                    Select Dates
+                </label>
+                <label>
+                    <input type="radio" name="unavailableType" value="recurring">
+                    Recurring Days
+                </label>
+            </div>
+            <div id="datesInput">
+                <input type="text" id="unavailableDatesCalendar" placeholder="Select dates">
+            </div>
+            <div id="recurringInput" style="display: none;">
+                <div id="recurringDays">
+                    <label><input type="checkbox" value="0"> Sunday</label>
+                    <label><input type="checkbox" value="1"> Monday</label>
+                    <label><input type="checkbox" value="2"> Tuesday</label>
+                    <label><input type="checkbox" value="3"> Wednesday</label>
+                    <label><input type="checkbox" value="4"> Thursday</label>
+                    <label><input type="checkbox" value="5"> Friday</label>
+                    <label><input type="checkbox" value="6"> Saturday</label>
+                </div>
+            </div>
+            <button id="addUnavailableDate">Mark as Unavailable</button>
+        </div>
+
+        <div class="section-separator"></div>
+
+        <div id="dateSelection">
+            <h2>Select Start Date</h2>
+            <input type="date" id="startDate">
+        </div>
+        <button id="generateRota">Generate Rota</button>
+        <div id="rotaOutput"></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
