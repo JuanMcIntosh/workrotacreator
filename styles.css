@@ -148,3 +148,44 @@ button:hover {
   margin-right: 5px;
   width: auto;
 }
+
+.unavailable-date {
+  display: inline-block;
+  background-color: #ffeeee;
+  padding: 2px 5px;
+  border-radius: 3px;
+  margin: 2px;
+}
+
+.remove-date {
+  cursor: pointer;
+  color: #cc0000;
+  margin-left: 5px;
+}
+
+.unavailable-date:hover {
+  background-color: #ffdddd;
+}
+
+.custom-alert {
+  position: absolute;
+  background-color: #ffeeee;
+  border: 1px solid #cc0000;
+  color: #cc0000;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 14px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  z-index: 1000;
+  max-width: 250px;
+}
+
+.custom-alert::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 10px;
+  border-width: 0 10px 10px 10px;
+  border-style: solid;
+  border-color: transparent transparent #cc0000 transparent;
+}

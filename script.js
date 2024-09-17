@@ -57,11 +57,13 @@ employeeNameInput.addEventListener('keyup', function(event) {
 });
 
 // Initialize Flatpickr
-flatpickr(unavailableDatesCalendar, {
+let unavailableDatesFlatpickr = flatpickr(unavailableDatesCalendar, {
   mode: "multiple",
   dateFormat: "Y-m-d",
 });
 
+// Employee management functions
+// These functions handle adding employees and updating the UI
 function addEmployee() {
   const name = employeeNameInput.value.trim();
   if (name) {
@@ -70,6 +72,8 @@ function addEmployee() {
       updateEmployeeList();
       updateEmployeeSelect();
       employeeNameInput.value = '';
+  } else {
+    showCustomAlert('Please enter an employee name.', employeeNameInput);
   }
 }
 
@@ -111,8 +115,13 @@ function updateEmployeeSelect() {
       option.textContent = employee.name;
       employeeSelect.appendChild(option);
   });
+
+  // Add this event listener
+  employeeSelect.addEventListener('change', resetUnavailableDatesCalendar);
 }
 
+// Unavailable date management functions
+// These functions handle marking and removing unavailable dates for employees
 function toggleUnavailableInputs() {
   const selectedType = document.querySelector('input[name="unavailableType"]:checked').value;
   document.getElementById('datesInput').style.display = selectedType === 'dates' ? 'block' : 'none';
@@ -167,11 +176,18 @@ function removeUnavailableDate(event) {
   updateEmployeeList();
 }
 
+// Rota generation functions
+// These functions are responsible for creating the work rota
 function generateRota() {
   startDate = new Date(startDateInput.value);
-  if (!startDate || employees.length === 0) {
-      alert('Please select a start date and add employees.');
-      return;
+  if (!startDate || isNaN(startDate.getTime())) {
+    showCustomAlert('Please select a start date before generating the rota.', startDateInput);
+    return;
+  }
+  
+  if (employees.length === 0) {
+    showCustomAlert('Please add employees before generating the rota.', addEmployeeBtn);
+    return;
   }
   
   endDate = new Date(startDate);
@@ -187,26 +203,26 @@ function generateRota() {
       
       if (isWeekend) {
           if (dayOfWeek === 6) { // Saturday
-              const longShift = createShift(currentDate, 'Saturday Long', '12:30', '20:30', 1.5);
-              const shortShift = createShift(currentDate, 'Saturday Short', '12:30', '16:30', 1.5);
+              const longShift = createShift(new Date(currentDate), 'Saturday Long', '12:30', '20:30', 1.5);
+              const shortShift = createShift(new Date(currentDate), 'Saturday Short', '12:30', '16:30', 1.5);
               
               assignShift(longShift, rota);
               assignShift(shortShift, rota);
           } else { // Sunday
-              const morningShift = createShift(currentDate, 'Sunday Morning', '08:30', '12:30', 2);
-              const longShift = createShift(currentDate, 'Sunday Long', '08:30', '20:30', 2);
+              const morningShift = createShift(new Date(currentDate), 'Sunday Morning', '08:30', '12:30', 2);
+              const longShift = createShift(new Date(currentDate), 'Sunday Long', '08:30', '20:30', 2);
               
               assignShift(morningShift, rota);
               assignShift(longShift, rota);
           }
           
           // Weekend duty (for both Saturday and Sunday)
-          const weekendDuty = createShift(currentDate, 'Weekend Duty', '20:30', '08:30', dayOfWeek === 0 ? 2 : 1.5);
+          const weekendDuty = createShift(new Date(currentDate), 'Weekend Duty', '20:30', '08:30', dayOfWeek === 0 ? 2 : 1.5);
           assignShift(weekendDuty, rota);
       } else {
           // Weekday shifts
-          const session = createShift(currentDate, 'Weekday Session', '16:30', '20:30', 1);
-          const duty = createShift(currentDate, 'Weekday Duty', '20:30', '08:30', 1);
+          const session = createShift(new Date(currentDate), 'Weekday Session', '16:30', '20:30', 1);
+          const duty = createShift(new Date(currentDate), 'Weekday Duty', '20:30', '08:30', 1);
           
           assignShift(session, rota);
           assignShift(duty, rota);
@@ -226,7 +242,10 @@ function createShift(date, type, startTime, endTime, rate) {
 function assignShift(shift, rota) {
   const availableEmployees = employees.filter(employee => 
       isEmployeeAvailable(employee, shift.date) && 
-      !hasWorkedPreviousDay(employee, shift.date)
+      !hasWorkedPreviousDay(employee, shift.date) &&
+      !hasShiftOnDate(employee, shift.date) &&
+      !isWorkingSimultaneously(employee, shift, rota) &&
+      !hasWorkedOtherWeekendDay(employee, shift.date)
   );
   
   if (availableEmployees.length === 0) {
@@ -239,6 +258,20 @@ function assignShift(shift, rota) {
   rota.push({ employee, shift });
   
   updateEmployeeStats(employee, shift);
+}
+
+// Helper functions for shift assignment
+// These functions assist in determining employee availability and shift conflicts
+function isWorkingSimultaneously(employee, newShift, rota) {
+  return rota.some(assignment => 
+      assignment.employee === employee &&
+      assignment.shift.date.toDateString() === newShift.date.toDateString() &&
+      (
+          (assignment.shift.startTime <= newShift.startTime && assignment.shift.endTime > newShift.startTime) ||
+          (assignment.shift.startTime < newShift.endTime && assignment.shift.endTime >= newShift.endTime) ||
+          (newShift.startTime <= assignment.shift.startTime && newShift.endTime >= assignment.shift.endTime)
+      )
+  );
 }
 
 function isEmployeeAvailable(employee, date) {
@@ -257,10 +290,18 @@ function hasWorkedPreviousDay(employee, date) {
   );
 }
 
+function hasShiftOnDate(employee, date) {
+  return employee.assignedShifts.some(shift => 
+    shift.date.toDateString() === date.toDateString()
+  );
+}
+
 function getRandomEmployee(availableEmployees) {
   return availableEmployees[Math.floor(Math.random() * availableEmployees.length)];
 }
 
+// Employee statistics functions
+// These functions update and calculate employee work statistics
 function updateEmployeeStats(employee, shift) {
   const shiftHours = calculateShiftHours(shift);
   employee.totalHours += shiftHours;
@@ -274,6 +315,8 @@ function calculateShiftHours(shift) {
   return (end - start) / (1000 * 60 * 60);
 }
 
+// Workload balancing functions
+// These functions attempt to balance the workload among employees
 function balanceWorkload(rota) {
   const targetHours = employees.reduce((sum, emp) => sum + emp.totalHours, 0) / employees.length;
   const targetPay = employees.reduce((sum, emp) => sum + emp.totalPay, 0) / employees.length;
@@ -321,6 +364,8 @@ function isWorkloadBalanced() {
   );
 }
 
+// Rota display functions
+// These functions handle displaying the generated rota and employee statistics
 function displayRota(rota) {
   rotaOutputDiv.innerHTML = '';
   
@@ -335,7 +380,6 @@ function displayRota(rota) {
           <th>Employee</th>
           <th>Start Time</th>
           <th>End Time</th>
-          <th>Rate</th>
       </tr>
   `;
   
@@ -347,7 +391,6 @@ function displayRota(rota) {
           <td>${assignment.employee.name}</td>
           <td>${assignment.shift.startTime}</td>
           <td>${assignment.shift.endTime}</td>
-          <td>${assignment.shift.rate}x</td>
       `;
   });
   
@@ -370,6 +413,8 @@ function displayRota(rota) {
   rotaOutputDiv.appendChild(downloadBtn);
 }
 
+// PDF generation function
+// This function creates a downloadable PDF of the rota
 function downloadPDF(rota) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
@@ -389,11 +434,11 @@ function downloadPDF(rota) {
   const cellPadding = 2;
   const lineHeight = 7;
 
-  // Define columns
+  // Define columns with updated headers
   const columns = [
     { header: 'Date', width: 40 },
-    { header: 'Sessions', width: 75 },
-    { header: 'Duties', width: 75 }
+    { header: 'Sessions (16:30-20:30)', width: 75 },
+    { header: 'Duties (20:30-08:30)', width: 75 }
   ];
 
   // Draw table header
@@ -414,7 +459,8 @@ function downloadPDF(rota) {
     if (!acc[dateStr]) {
       acc[dateStr] = { sessions: [], duties: [] };
     }
-    if (assignment.shift.type.includes('Session')) {
+    if (assignment.shift.type === 'Saturday Short' || assignment.shift.type === 'Sunday Morning' || 
+        assignment.shift.type.includes('Session')) {
       acc[dateStr].sessions.push(assignment);
     } else {
       acc[dateStr].duties.push(assignment);
@@ -433,20 +479,38 @@ function downloadPDF(rota) {
     currentX = 14;
     if (index % 2 === 0) {
       doc.setFillColor(249, 249, 249); // #f9f9f9
-      doc.rect(currentX, currentY, 190, lineHeight, 'F');
+      doc.rect(currentX, currentY, 190, lineHeight * Math.max(shifts.sessions.length, shifts.duties.length), 'F');
+    } else {
+      doc.setFillColor(242, 242, 242); // #f2f2f2
+      doc.rect(currentX, currentY, 190, lineHeight * Math.max(shifts.sessions.length, shifts.duties.length), 'F');
     }
+
+    const shiftDate = new Date(date);
+    const isWeekend = shiftDate.getDay() === 0 || shiftDate.getDay() === 6;
 
     // Date column
     doc.text(date, currentX + cellPadding, currentY + 5);
     currentX += columns[0].width;
 
     // Sessions column
-    const sessionsText = shifts.sessions.map(s => `${s.employee.name} (${s.shift.startTime}-${s.shift.endTime})`).join('\n');
+    const sessionsText = shifts.sessions.map(s => {
+      if (isWeekend) {
+        return `${s.employee.name} (${s.shift.startTime}-${s.shift.endTime})`;
+      } else {
+        return s.employee.name;
+      }
+    }).join('\n');
     doc.text(sessionsText, currentX + cellPadding, currentY + 5);
     currentX += columns[1].width;
 
     // Duties column
-    const dutiesText = shifts.duties.map(s => `${s.employee.name} (${s.shift.startTime}-${s.shift.endTime})`).join('\n');
+    const dutiesText = shifts.duties.map(s => {
+      if (isWeekend) {
+        return `${s.employee.name} (${s.shift.startTime}-${s.shift.endTime})`;
+      } else {
+        return s.employee.name;
+      }
+    }).join('\n');
     doc.text(dutiesText, currentX + cellPadding, currentY + 5);
 
     currentY += Math.max(sessionsText.split('\n').length, dutiesText.split('\n').length) * lineHeight;
@@ -477,10 +541,60 @@ function downloadPDF(rota) {
   doc.save('work_rota.pdf');
 }
 
+// Utility function
+// This function formats dates for display
 function formatDate(date) {
   const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
   return date.toLocaleDateString('en-US', options);
 }
 
-// Initialize the page
+// Page initialization
+// This call ensures the correct input fields are displayed on page load
 toggleUnavailableInputs();
+
+// Add this new function
+function resetUnavailableDatesCalendar() {
+  unavailableDatesFlatpickr.clear();
+}
+
+// Add these new helper functions
+
+function isWeekend(date) {
+  const day = date.getDay();
+  return day === 0 || day === 6; // 0 is Sunday, 6 is Saturday
+}
+
+function hasWorkedOtherWeekendDay(employee, date) {
+  if (!isWeekend(date)) return false;
+
+  const otherWeekendDay = new Date(date);
+  otherWeekendDay.setDate(date.getDate() + (date.getDay() === 0 ? -1 : 1)); // If Sunday, check Saturday; if Saturday, check Sunday
+
+  return employee.assignedShifts.some(shift => 
+    shift.date.toDateString() === otherWeekendDay.toDateString()
+  );
+}
+
+function showCustomAlert(message, targetElement) {
+  // Remove any existing alerts
+  const existingAlerts = document.querySelectorAll('.custom-alert');
+  existingAlerts.forEach(alert => alert.remove());
+
+  // Create the alert element
+  const alertElement = document.createElement('div');
+  alertElement.className = 'custom-alert';
+  alertElement.textContent = message;
+
+  // Position the alert
+  const rect = targetElement.getBoundingClientRect();
+  alertElement.style.top = `${rect.bottom + window.scrollY + 10}px`;
+  alertElement.style.left = `${rect.left + window.scrollX}px`;
+
+  // Add the alert to the document
+  document.body.appendChild(alertElement);
+
+  // Remove the alert after 3 seconds
+  setTimeout(() => {
+    alertElement.remove();
+  }, 3000);
+}
