@@ -10,14 +10,29 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </head>
 <body>
+    <div id="holidayModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>Manage Holidays</h2>
+            <select id="holidayEmployeeSelect"></select>
+            <input type="date" id="holidayStartDate" placeholder="Start Date">
+            <input type="date" id="holidayEndDate" placeholder="End Date">
+            <button id="addHoliday">Add Holiday</button>
+            <div id="holidayList"></div>
+        </div>
+    </div>
+
     <div class="container">
         <h1>Work Rota Creator</h1>
-        <div id="employeeInput">
-            <h2>Add Employees</h2>
-            <input type="text" id="employeeName" placeholder="Employee Name">
-            <button id="addEmployee">Add Employee</button>
+        <div id="employeeManagement">
+            <h2>Manage Employees</h2>
+            <button id="manageEmployees">Manage Employees</button>
         </div>
-        <div id="employeeList"></div>
+
+        <!-- Add this after the employeeManagement div and before the unavailableDates div -->
+        <div id="holidayManagement">
+            <h2>Manage Holidays</h2>
+            <button id="manageHolidays">Manage Holidays</button>
+        </div>
 
         <div class="section-separator"></div>
 
@@ -60,6 +75,43 @@
         <button id="generateRota">Generate Rota</button>
         <div id="rotaOutput"></div>
     </div>
-    <script src="script.js"></script>
+
+    <script type="module" src="script.js"></script>
+    <script type="module" src="holidayManager.js"></script>
+
+    <!-- Add this just before the closing </body> tag -->
+    <div id="employeeModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>Manage Employees</h2>
+            <input type="text" id="newEmployeeName" placeholder="Enter new employee name">
+            <button id="addNewEmployee">Add Employee</button>
+            <div id="employeeList"></div>
+        </div>
+    </div>
+
+    <!-- Add this modal at the end of the body, just before the closing </body> tag -->
+    <div id="holidayModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>Manage Holidays</h2>
+            <select id="holidayEmployeeSelect"></select>
+            <input type="date" id="holidayStartDate" placeholder="Start Date">
+            <input type="date" id="holidayEndDate" placeholder="End Date">
+            <button id="addHoliday">Add Holiday</button>
+            <div id="holidayList"></div>
+        </div>
+    </div>
+
+    <!-- Add this script just before the closing </body> tag -->
+    <script>
+        // Check if it's a new user
+        if (!localStorage.getItem('employees')) {
+            // If it's a new user, we'll prompt for employees when the page loads
+            window.addEventListener('load', function() {
+                if (typeof promptForEmployees === 'function') {
+                    promptForEmployees();
+                }
+            });
+        }
+    </script>
 </body>
 </html>
